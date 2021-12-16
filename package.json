@@ -9,9 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "purescript": "^0.14.5",
-    "purty": "^7.0.0",
-    "spago": "^0.20.3"
+    "purty": "^7.0.0"
   },
   "directories": {
     "test": "test"
@@ -24,5 +22,9 @@
     "url": "https://github.com/mkohlhaas/fp-book/issues"
   },
   "homepage": "https://github.com/mkohlhaas/fp-book#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "purescript": "^0.14.5",
+    "spago": "^0.20.3"
+  }
 }
