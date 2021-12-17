@@ -2,9 +2,10 @@ module Ch5 where
   
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..), snd)
 import Effect (Effect)
 import Effect.Console (log)
-import Prelude (Unit, (+), (-), (>), (<), (<=), (>=), (/=), (==), show, discard, negate, type (~>), max)
+import Prelude (Unit, (+), (-), (>), (<), (>=), (/=), (==), show, discard, negate, max)
 
 flip :: ∀ a b c. (a -> b -> c) -> b -> a -> c
 flip fn a b = fn b a
@@ -97,17 +98,6 @@ reverse l = reverse' l Nil where
   reverse' Nil      rl = rl
   reverse' (a : as) rl = reverse' as (a : rl)
 
--- concat :: ∀ a. List (List a) -> List a
--- concat ls = concat' ls Nil where
---   -- ls = list of lists
---   concat' :: List (List a) -> List a -> List a
---   -- rl = resulant list
---   concat' Nil        rl = reverse rl
---   concat' (l1 : l1s) rl = concat' l1s $ concat'' l1 rl where
---     -- l1 = list, l1s = list of lists
---     concat'' Nil      rl1 = rl1
---     concat'' (a : as) rl1 = concat'' as (a : rl1)
-
 concat :: ∀ a. List (List a) -> List a
 concat Nil = Nil
 concat (Nil : xss) = concat xss
@@ -141,6 +131,55 @@ take'' :: ∀ a. Int -> List a -> List a
 take'' _ Nil      = Nil
 take'' 0 _        = Nil
 take'' n (x : xs) = x : take'' (n - 1) xs
+
+drop :: ∀ a. Int -> List a -> List a
+drop n = drop' (max 0 n) where
+  drop' _  Nil      = Nil
+  drop' 0  l        = l
+  drop' n' (_ : as) = drop' (n' - 1) as
+
+takeWhile :: ∀ a. (a -> Boolean) -> List a -> List a
+takeWhile _ Nil            = Nil
+takeWhile p (a : as) | p a = a : takeWhile p as
+takeWhile _ _              = Nil
+
+dropWhile :: ∀ a. (a -> Boolean) -> List a -> List a
+dropWhile _ Nil            = Nil
+dropWhile p (a : as) | p a = dropWhile p as
+dropWhile _ l              = l
+
+-- takeEnd :: ∀ a. Int -> List a -> List a
+-- takeEnd n l = reverse $ take n $ reverse l
+
+-- takeEnd' :: ∀ a. Int -> List a -> List a
+-- takeEnd' n xs = drop (max 0 $ length xs - n) xs
+
+takeEnd :: ∀ a. Int -> List a -> List a
+takeEnd n l | n >= 0 = go l # snd where
+  go Nil = Tuple 0 Nil
+  go (x : xs) = go xs # createEndList where 
+    createEndList (Tuple c l') | c < n = Tuple (c + 1) (x : l')
+    createEndList (Tuple c l')         = Tuple c l'
+takeEnd _ _ = Nil
+
+dropEnd :: ∀ a. Int -> List a -> List a
+dropEnd n l | n >= 0 = go l # snd where
+  go Nil = Tuple 0 Nil
+  go (x : xs) = go xs # createEndList where 
+    createEndList (Tuple c _ ) | c < n = Tuple (c + 1) Nil
+    createEndList (Tuple c l')         = Tuple  c      (x : l')
+dropEnd _ _ = Nil
+
+zip :: ∀ a b. List a -> List b -> List (Tuple a b)
+zip Nil      _        = Nil
+zip _        Nil      = Nil
+zip (a : as) (b : bs) = Tuple a b : zip as bs
+
+unzip :: ∀ a b. List (Tuple a b) -> Tuple (List a) (List b)
+unzip = unzip' Nil Nil where
+  unzip' :: List a -> List b -> List (Tuple a b) -> Tuple (List a) (List b)
+  unzip' la lb Nil                    = Tuple (reverse la) (reverse lb)
+  unzip' la lb (Tuple a b : tuples)   = unzip' (a : la) (b : lb) tuples 
 
 test :: Effect Unit
 test = do
@@ -186,3 +225,19 @@ test = do
   log $ show $ take'' 5 (-7 : 9 : 0 : 12 : -13 : 45 : 976 : -19 : Nil) -- (-7 : 9 : 0 : 12 : -13 : Nil)
   log $ show $ take'' 5 (12 : 13 : 14 : Nil) -- (12 : 13 : 14 : Nil)
   log $ show $ take'' 5 (-7 : 9 : 0 : 12 : -13 : 45 : 976 : -19 : Nil) -- (-7 : 9 : 0 : 12 : -13 : Nil)
+  log $ show $ drop 2 (1 : 2 : 3 : 4 : 5 : 6 : 7 : Nil) -- (3 : 4 : 5 : 6 : 7 : Nil)
+  log $ show $ drop 10 (Nil :: List Unit) -- Nil
+  log $ show $ takeWhile (_ > 3) (5 : 4 : 3 : 99 : 101 : Nil) -- (1 : 2 : 3 : Nil)
+  log $ show $ takeWhile (_ == -17) (1 : 2 : 3 : Nil) -- (1 : 2 : 3 : Nil)
+  log $ show $ dropWhile (_ > 3) (5 : 4 : 3 : 99 : 101 : Nil) --  (3 : 99 : 101 : Nil)
+  log $ show $ dropWhile (_ == -17) (1 : 2 : 3 : Nil) -- (1 : 2 : 3 : Nil)
+  log $ show $ takeEnd 3 (1 : 2 : 3 : 4 : 5 : 6 : Nil) -- (4 : 5 : 6 : Nil)
+  log $ show $ takeEnd 10 (1 : Nil) -- (1 : Nil)
+  log $ show $ dropEnd 3 (1 : 2 : 3 : 4 : 5 : 6 : Nil) -- (1 : 2 : 3 : Nil)
+  log $ show $ dropEnd 10 (1 : Nil) -- Nil
+  log $ show $ zip (1 : 2 : 3 : Nil) ("a" : "b" : "c" : "d" : "e" : Nil) -- ((Tuple 1 "a") : (Tuple 2 "b") : (Tuple 3 "c") : Nil)
+  log $ show $ zip ("a" : "b" : "c" : "d" : "e" : Nil) (1 : 2 : 3 : Nil) -- ((Tuple "a" 1) : (Tuple "b" 2) : (Tuple "c" 3) : Nil)
+  log $ show $ zip (Nil :: List Unit) (1 : 2 : Nil) -- Nil
+  log $ show $ unzip (Tuple 1 "a" : Tuple 2 "b" : Tuple 3 "c" : Nil) -- (Tuple (1 : 2 : 3 : Nil) ("a" : "b" : "c" : Nil))
+  log $ show $ unzip (Tuple "a" 1 : Tuple "b" 2 : Tuple "c" 3 : Nil) -- (Tuple ("a" : "b" : "c" : Nil) (1 : 2 : 3 : Nil))
+  log $ show $ unzip (Nil :: List (Tuple Unit Unit)) -- (Tuple Nil Nil)
