@@ -280,5 +280,5 @@ test = do
   verifyMod4Semigroup
   verifyMod4Monoid
   verifyMod4Group
-  log $ show $ First Nothing <> First (Just 77)
-  log $ show $ Last (Just 1) <> Last (Just 99)
+  log $ show $ First Nothing <> First (Just 77) -- (First (Just 77))
+  log $ show $ Last (Just 1) <> Last (Just 99)  -- (Last (Just 99))
