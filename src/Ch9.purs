@@ -21,6 +21,7 @@ class
   ginverse :: g -> g
 
 class Semigroup g <= Commutative g
+
 --------------------------------------------------------------------------------- 
 -------------------------------- AndBool ---------------------------------------- 
 --------------------------------------------------------------------------------- 
@@ -235,7 +236,7 @@ verifyMod4Group = do
 -------------------------------- Maybe ------------------------------------------ 
 --------------------------------------------------------------------------------- 
 
--- First --
+-- First -----------------
 newtype First a = First (Maybe a)
 
 derive instance genericFirst :: Generic (First a) _
@@ -249,7 +250,7 @@ instance semigroupFirst :: Semigroup (First a) where
 instance monoidFirst :: Monoid (First a) where
   mempty = First Nothing
 
--- Last --
+-- Last -----------------
 newtype Last  a = Last (Maybe a)
 
 derive instance genericLast :: Generic (Last a) _
