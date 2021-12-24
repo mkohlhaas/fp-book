@@ -18,7 +18,7 @@ data Maybe a = Nothing | Just a
 --   eq Nothing   Nothing   = true
 --   eq (Just a1) (Just a2) = a1 == a2
 --   eq _         _         = false
-  
+
 -- instance ordMaybe :: Ord a => Ord (Maybe a) where
 --   compare Nothing   Nothing   = EQ
 --   compare Nothing   (Just _)  = LT
