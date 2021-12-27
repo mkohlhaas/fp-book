@@ -3,6 +3,7 @@ module Ch13 where
 import Prelude (Unit, discard, ($), show, (/), class Show, (==), (<>), class Eq, identity, (+), (*), (<<<))
 import Data.Generic.Rep (class Generic)
 import Data.Show.Generic (genericShow)
+import Data.String.Common (toUpper)
 import Effect (Effect)
 import Effect.Console (log)
 
@@ -54,6 +55,33 @@ instance showThreeple :: (Show a, Show b, Show c) => Show (Threeple a b c) where
 
 instance functorThreeple :: Functor (Threeple a b) where
   map f (Threeple a b c) = Threeple a b $ f c
+
+---------------------- Bifunctor --------------------------------
+class Bifunctor f where
+  bimap :: ∀ a b c d. (a -> c) -> (b -> d) -> f a b -> f c d
+
+-- only map over left, leave right untouched
+lmap :: ∀ f a b c. Bifunctor f => (a -> b) -> f a c -> f b c
+lmap f = bimap f identity
+-- lmap = flip bimap identity
+
+-- only map over right, leave left untouched
+rmap :: ∀ f a b c. Bifunctor f => (b -> c) -> f a b -> f a c
+rmap = bimap identity
+
+---------------------- Bifunctor Either -------------------------
+instance bifunctorEither :: Bifunctor Either where
+  bimap f _ (Left  a) = Left  $ f a
+  bimap _ g (Right b) = Right $ g b
+
+---------------------- Bifunctor Tuple --------------------------
+instance bifunctorTuple :: Bifunctor Tuple where
+  bimap f g (Tuple a b) = Tuple (f a) (g b)
+
+---------------------- Bifunctor Threeple -----------------------
+instance bifunctorThreeple :: Bifunctor (Threeple a) where
+  bimap f g (Threeple a b c) = Threeple a (f b) (g c)
+
 -----------------------------------------------------------------
 test :: Effect Unit
 test = do
@@ -70,3 +98,13 @@ test = do
   log $ show $ "Maybe Composition for Just: " <> show ((map ((_*3) <<< (_+2)) (Just 60)) == (map (_*3) <<< map (_+2)) (Just 60))
   log $ show $ "Tuple Identity: " <> show ((identity <$> Tuple 10 20) == Tuple 10 20)
   log $ show $ "Tuple Composition : " <> show ((map ((_*3) <<< (_+2)) (Tuple 10 20)) == (map (_*3) <<< map (_+2)) (Tuple 10 20))
+  log $ show $ rmap (_ * 2) $ Left "error reason"                    -- (Left "error reason")
+  log $ show $ rmap (_ * 2) $ (Right 10 :: Either Unit _)            -- (Right 20)
+  log $ show $ lmap toUpper $ (Left "error reason" :: Either _ Unit) -- (Left "ERROR REASON")
+  log $ show $ lmap toUpper $ Right 10                               -- (Right 10)
+  log $ show $ rmap  (_ * 2) $ Tuple 80 40                           -- Prints (Tuple 80 80)
+  log $ show $ lmap  (_ / 2) $ Tuple 80 40                           -- Prints (Tuple 40 40)
+  log $ show $ bimap (_ / 2) (_ * 2) $ Tuple 80 40                   -- Prints (Tuple 40 80)
+  log $ show $ rmap  (_ * 2) $ Threeple 99 80 40                     -- (Threeple 99 80 80)
+  log $ show $ lmap  (_ / 2) $ Threeple 99 80 40                     -- (Threeple 99 40 40)
+  log $ show $ bimap (_ / 2) (_ * 2) $ Threeple 99 80 40             -- (Threeple 99 40 80)

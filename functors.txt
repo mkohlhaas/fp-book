@@ -1,0 +1,107 @@
+=================================================================================================
+|                                      Mapping functions                                        |
+=================================================================================================
+
+                                   ------------------------
+                                   | One mapping function |
+                                   ------------------------
+
+class Functor f where
+  map :: ∀ a b. (a -> b) -> f a -> f b                             (Covariant)
+
+class Contravariant f where
+  cmap :: ∀ a b. (b -> a) -> f a -> f b                            (Contravariant)
+
+                                   -------------------------
+                                   | Two mapping functions |
+                                   -------------------------
+
+class Bifunctor f where
+  bimap :: ∀ a b c d. (a -> c) -> (b -> d) -> f a b -> f c d       (Covariant, Covariant)
+
+class Invariant f where
+  imap :: ∀ a b. (a -> b) -> (b -> a) -> f a -> f b                (Covariant, Contravariant)
+
+class Profunctor p where
+  dimap :: ∀ a b c d. (b -> a) -> (c -> d) -> p a c -> p b d       (Contravariant, Covariant)
+
+=================================================================================================
+|                                      Type parameters                                          |
+=================================================================================================
+
+                                   ----------------------
+                                   | One type parameter |
+                                   ----------------------
+
+class Functor f where
+  map :: ∀ a b. (a -> b) -> f a -> f b                             (Covariant)
+
+class Contravariant f where
+  cmap :: ∀ a b. (b -> a) -> f a -> f b                            (Contravariant)
+
+class Invariant f where
+  imap :: ∀ a b. (a -> b) -> (b -> a) -> f a -> f b                (Covariant, Contravariant)
+
+                                   -----------------------
+                                   | Two type parameters |
+                                   -----------------------
+
+class Bifunctor f where
+  bimap :: ∀ a b c d. (a -> c) -> (b -> d) -> f a b -> f c d       (Covariant, Covariant)
+
+class Profunctor p where
+  dimap :: ∀ a b c d. (b -> a) -> (c -> d) -> p a c -> p b d       (Contravariant, Covariant)
+
+=================================================================================================
+|                           Function Functors ((->) r, (->))                                    |
+=================================================================================================
+
+class Functor f where
+  map :: ∀ a b. (a -> b) -> (r -> a) -> (r -> b)
+  -- map f g = f << g
+
+instance functorFn :: Functor ((->) r a) where
+  map f g = f << g
+
+-----------------------------------------------------------------------
+
+class Profunctor p where
+  dimap :: ∀ a b c d. (b -> a) -> (c -> d) -> (a -> c) -> (b -> d)
+  -- dimap f g h = g << h << f
+
+instance profunctorFn :: Profunctor (->) where
+  dimap f g h = g << h << f
+
+=======================================================================
+Everything else does not work!
+=======================================================================
+
+class Contravariant f where
+  cmap :: ∀ a b. (b -> a) -> (a -> r) -> (b -> r)
+  -- cmap f g = g << f
+
+instance contravariantFn :: Contravariant ((->) r) where
+  OOPS (a -> r = (->) a r) does not fit; not possible
+
+But could have, e.g.: a -> Int
+instance contravariantFnInt :: Contravariant (a -> Int) where
+  cmap f g = g << f
+
+-----------------------------------------------------------------------
+
+class Invariant f where
+  imap :: ∀ a b. (a -> b) -> (b -> a) -> (r -> a) -> (r -> b)
+  -- imap f g h = f << h
+
+instance invariantFn :: Invariant ((->) r) where
+  -- imap f g h = f << h
+
+Note: But g is never used. It's basically a Functor. Functions are
+not Invariant Functors!
+-----------------------------------------------------------------------
+
+class Bifunctor f where
+  bimap :: ∀ a b c d. (a -> c) -> (b -> d) -> (a -> b) -> (c -> d)
+  -- bimap f g h = COMPOSITION NOT POSSIBLE!!!
+
+-----------------------------------------------------------------------
