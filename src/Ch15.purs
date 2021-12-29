@@ -5,8 +5,8 @@ import Data.Foldable (class Foldable, foldl)
 import Data.Int.Bits ((.&.))
 import Data.List (List(..), (:))
 import Data.Functor.Contravariant (class Contravariant, cmap, (>$<))
-import Data.Profunctor
-import Data.String.CodePoints
+import Data.Profunctor (class Profunctor, dimap)
+import Data.String.CodePoints (length)
 import Effect (Effect)
 import Effect.Console (log)
 

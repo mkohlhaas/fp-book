@@ -26,6 +26,7 @@ to generate this file without the comments in this block.
   , "nonempty"
   , "contravariant"
   , "profunctor"
+  , "bifunctors"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
